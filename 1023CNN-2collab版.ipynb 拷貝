@@ -1,0 +1,749 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "1023CNN.ipynb",
+      "provenance": [],
+      "collapsed_sections": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "xxT14JEUX_4k",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "%matplotlib inline\n",
+        "\n",
+        "import numpy as np\n",
+        "import matplotlib.pyplot as plt\n",
+        "import pandas as pd"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "u-n_t6tcYEL4",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        },
+        "outputId": "8b5c9109-214f-4456-eceb-46985349edf5"
+      },
+      "source": [
+        "from keras.datasets import mnist"
+      ],
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Using TensorFlow backend.\n"
+          ],
+          "name": "stderr"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "KrMdJMmeYEhe",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 51
+        },
+        "outputId": "d75c0dc3-6d92-4703-f1dc-26e49fc2ea64"
+      },
+      "source": [
+        "(x_train, y_train), (x_test, y_test) = mnist.load_data()"
+      ],
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Downloading data from https://s3.amazonaws.com/img-datasets/mnist.npz\n",
+            "11493376/11490434 [==============================] - 1s 0us/step\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "A6xz0KpNYFod",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 286
+        },
+        "outputId": "16929345-1c2b-4187-a197-92009bdaf490"
+      },
+      "source": [
+        "plt.imshow(x_train[1234], cmap='Greys')"
+      ],
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "<matplotlib.image.AxesImage at 0x7f00365e44a8>"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 4
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "image/png": "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\n",
+            "text/plain": [
+              "<Figure size 432x288 with 1 Axes>"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          }
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "LlWsSNjMYGsz",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        },
+        "outputId": "1c051db1-d4de-4bb0-96ef-773986cd4e30"
+      },
+      "source": [
+        "y_train[1234]"
+      ],
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "3"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 5
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "fTpOBCh5YHzY",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        },
+        "outputId": "232514fa-f0c0-4587-e2fd-6650a8cfb99c"
+      },
+      "source": [
+        "x_train[1234].shape"
+      ],
+      "execution_count": 6,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "(28, 28)"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 6
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ZT_n0ylUYI1Q",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "x_train = x_train.reshape(60000, 28, 28, 1)\n",
+        "x_test = x_test.reshape(10000, 28, 28, 1)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "mfHy82V2YKWL",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from keras.utils import np_utils"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "tWF7M5yCYLkh",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "y_train = np_utils.to_categorical(y_train, 10)\n",
+        "y_test = np_utils.to_categorical(y_test, 10)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "2QQYfOIlYMww",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "x_train = x_train/255\n",
+        "x_test = x_test/255"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "IqBGx5zaYPpw",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from keras.models import Sequential\n",
+        "from keras.layers import Dense, Activation, Flatten\n",
+        "from keras.layers import Conv2D, MaxPool2D\n",
+        "from keras.optimizers import SGD"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "i88hjFt3YQ-O",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 71
+        },
+        "outputId": "c48cb8c3-58b0-4e75-cc96-d4012908205a"
+      },
+      "source": [
+        "model = Sequential()"
+      ],
+      "execution_count": 12,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:66: The name tf.get_default_graph is deprecated. Please use tf.compat.v1.get_default_graph instead.\n",
+            "\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "7VgYFZ-gYSJg",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 105
+        },
+        "outputId": "02061a90-4258-4d8c-a193-9392de376b06"
+      },
+      "source": [
+        "model.add(Conv2D(4, (5, 5), padding='same', input_shape=(28, 28, 1),\n",
+        "                activation='relu'))"
+      ],
+      "execution_count": 13,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:541: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.\n",
+            "\n",
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:4432: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.\n",
+            "\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Qu5klKdYYTN-",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 71
+        },
+        "outputId": "0b276db3-80d3-4c50-ca70-344a195543e4"
+      },
+      "source": [
+        "model.add(MaxPool2D(pool_size=(2,2)))"
+      ],
+      "execution_count": 14,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:4267: The name tf.nn.max_pool is deprecated. Please use tf.nn.max_pool2d instead.\n",
+            "\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "OSvgk7O2YUov",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "model.add(Conv2D(8, (5, 5), padding='same',\n",
+        "                activation='relu'))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ka_EOLqqYV9t",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "model.add(MaxPool2D(pool_size=(2,2)))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "J4sqPp_WYXHy",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "model.add(Conv2D(16, (5, 5), padding='same',\n",
+        "                activation='relu'))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Yb2RvOSpYYt9",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "model.add(MaxPool2D(pool_size=(2,2)))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "XLLKc0bQYZ3B",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "model.add(Flatten())\n",
+        "model.add(Dense(17, activation='relu'))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "qLDmtxP2Ya-h",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "model.add(Dense(10, activation='softmax'))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "geuaxRfiYcjp",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "#model.compile(loss=\"categorical_crossentropy\",\n",
+        "#              optimizer=Adadelta(),\n",
+        "#              metrics=['accuracy'])"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "mDICvlbDYeBQ",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 71
+        },
+        "outputId": "e621cfa2-dde0-4457-b3ef-430784766503"
+      },
+      "source": [
+        "model.compile(loss='mse', optimizer=SGD(lr=0.07), metrics=['accuracy'])"
+      ],
+      "execution_count": 22,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/optimizers.py:793: The name tf.train.Optimizer is deprecated. Please use tf.compat.v1.train.Optimizer instead.\n",
+            "\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "H3IvxoF9Yfd1",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 459
+        },
+        "outputId": "47f4acf9-bde3-40a6-ab0b-32cb29ac4eb5"
+      },
+      "source": [
+        "model.summary()"
+      ],
+      "execution_count": 23,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Model: \"sequential_1\"\n",
+            "_________________________________________________________________\n",
+            "Layer (type)                 Output Shape              Param #   \n",
+            "=================================================================\n",
+            "conv2d_1 (Conv2D)            (None, 28, 28, 4)         104       \n",
+            "_________________________________________________________________\n",
+            "max_pooling2d_1 (MaxPooling2 (None, 14, 14, 4)         0         \n",
+            "_________________________________________________________________\n",
+            "conv2d_2 (Conv2D)            (None, 14, 14, 8)         808       \n",
+            "_________________________________________________________________\n",
+            "max_pooling2d_2 (MaxPooling2 (None, 7, 7, 8)           0         \n",
+            "_________________________________________________________________\n",
+            "conv2d_3 (Conv2D)            (None, 7, 7, 16)          3216      \n",
+            "_________________________________________________________________\n",
+            "max_pooling2d_3 (MaxPooling2 (None, 3, 3, 16)          0         \n",
+            "_________________________________________________________________\n",
+            "flatten_1 (Flatten)          (None, 144)               0         \n",
+            "_________________________________________________________________\n",
+            "dense_1 (Dense)              (None, 17)                2465      \n",
+            "_________________________________________________________________\n",
+            "dense_2 (Dense)              (None, 10)                180       \n",
+            "=================================================================\n",
+            "Total params: 6,773\n",
+            "Trainable params: 6,773\n",
+            "Non-trainable params: 0\n",
+            "_________________________________________________________________\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "qXZAjAeSYgjR",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 666
+        },
+        "outputId": "9bc67983-0cc7-424b-e586-4e06bf20a0cb"
+      },
+      "source": [
+        "model.fit(x_train, y_train, batch_size=100, epochs=10)"
+      ],
+      "execution_count": 24,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:1033: The name tf.assign_add is deprecated. Please use tf.compat.v1.assign_add instead.\n",
+            "\n",
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:1020: The name tf.assign is deprecated. Please use tf.compat.v1.assign instead.\n",
+            "\n",
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:3005: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.\n",
+            "\n",
+            "Epoch 1/10\n",
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:190: The name tf.get_default_session is deprecated. Please use tf.compat.v1.get_default_session instead.\n",
+            "\n",
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:197: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.\n",
+            "\n",
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:207: The name tf.global_variables is deprecated. Please use tf.compat.v1.global_variables instead.\n",
+            "\n",
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:216: The name tf.is_variable_initialized is deprecated. Please use tf.compat.v1.is_variable_initialized instead.\n",
+            "\n",
+            "WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:223: The name tf.variables_initializer is deprecated. Please use tf.compat.v1.variables_initializer instead.\n",
+            "\n",
+            "60000/60000 [==============================] - 38s 638us/step - loss: 0.0900 - acc: 0.0977\n",
+            "Epoch 2/10\n",
+            "60000/60000 [==============================] - 37s 624us/step - loss: 0.0894 - acc: 0.1718\n",
+            "Epoch 3/10\n",
+            "60000/60000 [==============================] - 37s 624us/step - loss: 0.0879 - acc: 0.2722\n",
+            "Epoch 4/10\n",
+            "60000/60000 [==============================] - 37s 623us/step - loss: 0.0728 - acc: 0.4865\n",
+            "Epoch 5/10\n",
+            "60000/60000 [==============================] - 37s 622us/step - loss: 0.0393 - acc: 0.7215\n",
+            "Epoch 6/10\n",
+            "60000/60000 [==============================] - 37s 622us/step - loss: 0.0177 - acc: 0.8885\n",
+            "Epoch 7/10\n",
+            "60000/60000 [==============================] - 37s 612us/step - loss: 0.0132 - acc: 0.9136\n",
+            "Epoch 8/10\n",
+            "60000/60000 [==============================] - 37s 615us/step - loss: 0.0109 - acc: 0.9284\n",
+            "Epoch 9/10\n",
+            "60000/60000 [==============================] - 37s 614us/step - loss: 0.0096 - acc: 0.9367\n",
+            "Epoch 10/10\n",
+            "60000/60000 [==============================] - 37s 614us/step - loss: 0.0085 - acc: 0.9450\n"
+          ],
+          "name": "stdout"
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "<keras.callbacks.History at 0x7f00334d2a90>"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 24
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "oyGURpjAYizu",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        },
+        "outputId": "3aa3e0b6-552f-4124-b03b-03b45532451a"
+      },
+      "source": [
+        "score = model.evaluate(x_test, y_test)"
+      ],
+      "execution_count": 25,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "10000/10000 [==============================] - 3s 267us/step\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "FzimyuhUaA-u",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 51
+        },
+        "outputId": "efeebe50-62e5-4415-9beb-d98f588d329f"
+      },
+      "source": [
+        "print(f'測試資料的 loss: {score[0]:.5f}')\n",
+        "print(f'測試資料的正確率: {score[1]}')"
+      ],
+      "execution_count": 26,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "測試資料的 loss: 0.00754\n",
+            "測試資料的正確率: 0.9509\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "UEmAt_l1aFmc",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "model.save('myCNNmodel.h5')"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "3xdlvY_3aO3N",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "del model"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "lBzDerFbaWqJ",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from keras.models import load_model"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "bz7FSGE1aYB4",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "model = load_model('myCNNmodel.h5')"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "x5JGF2F_aZMy",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "predict = model.predict_classes(x_test)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "MPSioKKtaabk",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 122
+        },
+        "outputId": "a9cc44fd-f1aa-434c-f040-6ea807ce04f6"
+      },
+      "source": [
+        "pick = np.random.randint(1,9999, 5)\n",
+        "\n",
+        "for i in range(5):\n",
+        "    plt.subplot(1,5,i+1)\n",
+        "    plt.imshow(x_test[pick[i]].reshape(28,28), cmap='Greys')\n",
+        "    plt.title(predict[pick[i]])\n",
+        "    plt.axis(\"off\")"
+      ],
+      "execution_count": 33,
+      "outputs": [
+        {
+          "output_type": "display_data",
+          "data": {
+            "image/png": "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\nYII=\n",
+            "text/plain": [
+              "<Figure size 432x288 with 5 Axes>"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          }
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "COtbOMhfabql",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        ""
+      ],
+      "execution_count": 0,
+      "outputs": []
+    }
+  ]
+}
